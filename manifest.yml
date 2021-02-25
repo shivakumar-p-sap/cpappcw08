@@ -1,0 +1,48 @@
+# Generated manifest.yml based on template version 0.1.0
+# appName = cpapp
+# language=nodejs
+# multiTenant=false
+---
+applications:
+  # -----------------------------------------------------------------------------------
+  # Backend Service
+  # -----------------------------------------------------------------------------------
+  - name: cpapp-srv
+    path: gen/srv
+    memory: 256M
+    buildpack: nodejs_buildpack
+    routes:
+      - route: cpapp-srv-ttc-fiori-capcw08-dev2-app.cfapps.sap.hana.ondemand.com
+    services:
+      - cpapp-db
+      - cpapp-uaa
+      - cpapp-destination
+      - cpapp-connectivity
+
+  # -----------------------------------------------------------------------------------
+  # HANA Database Content Deployer App
+  # -----------------------------------------------------------------------------------
+  - name: cpapp-db-deployer
+    path: gen/db
+    no-route: true
+    health-check-type: process
+    memory: 256M
+    instances: 1
+    buildpack: nodejs_buildpack
+    services:
+      - cpapp-db
+
+  - name: cpapp-app
+    path: app
+    memory: 128M
+    buildpacks:
+      - nodejs_buildpack
+    env:
+      destinations: |
+        [
+          {"name":"backend","url":"https://cpapp-srv-ttc-fiori-capcw08-dev2-app.cfapps.sap.hana.ondemand.com","forwardAuthToken":true}
+        ]
+    routes:
+      - route: cpapp-app-ttc-fiori-capcw08-dev2.cfapps.sap.hana.ondemand.com
+    services:
+      - cpapp-uaa
